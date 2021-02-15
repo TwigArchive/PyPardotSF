@@ -1,7 +1,10 @@
 import logging
 import requests
 import sys
-from urllib.parse import parse_qs, urlparse
+try:
+    from urllib.parse import parse_qs, urlparse
+except ImportError:
+    from urlparse import parse_qs, urlparse
 
 from .errors import PardotAPIError
 
@@ -73,15 +76,15 @@ To find the Pardot Business Unit ID, use Setup in Salesforce. From Setup, enter 
             self.sf_consumer_key = input()
             sys.stdout.write("What is your consumer secret?: ")
             self.sf_consumer_secret = input()
-        url = f"https://{instance_id}.salesforce.com/services/oauth2/authorize?response_type=code&client_id={self.sf_consumer_key}&redirect_uri=https://login.salesforce.com/"
-        print(f"""\nOpen the following page in a browser {url}.
-Allow access if any alert popup. You will be redirected to a login page, but do not login.""")
+        url = "https://{}.salesforce.com/services/oauth2/authorize?response_type=code&client_id={}&redirect_uri=https://login.salesforce.com/".format(instance_id, self.sf_consumer_key)
+        print("""\nOpen the following page in a browser {}.
+Allow access if any alert popup. You will be redirected to a login page, but do not login.""".format(url))
         sys.stdout.write("Copy and page the entire URL of the login page that contains code: ")
         new_url = input()
         parsed = urlparse(new_url)
         code = parse_qs(parsed.query)["code"][0]
 
-        post_url = f"https://login.salesforce.com/services/oauth2/token?code={code}&grant_type=authorization_code&client_id={self.sf_consumer_key}&client_secret={self.sf_consumer_secret}&redirect_uri=https://login.salesforce.com/"
+        post_url = "https://login.salesforce.com/services/oauth2/token?code={}&grant_type=authorization_code&client_id={}&client_secret={}&redirect_uri=https://login.salesforce.com/".format(code, self.sf_consumer_key, self.sf_consumer_secret)
         response = requests.post(post_url).json()
         self.sftoken = response.get("access_token")
         self.sftoken_refresh = response.get("refresh_token")
@@ -105,7 +108,7 @@ Allow access if any alert popup. You will be redirected to a login page, but do 
         response = requests.post(url, data=data).json()
         self.sftoken = response.get("access_token")
         if not self.sftoken:
-            raise Exception(f"Failed to refresh token: {response}")
+            raise Exception("Failed to refresh token: {}".format(response))
 
     def post(self, object_name, path=None,
               headers=None, params=None, data=None, json=None, files=None,
