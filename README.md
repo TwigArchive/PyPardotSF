@@ -1,3 +1,5 @@
+# Archived 2024/02/27
+
 # PyPardotSF
 
 PyPardotSF is yet another fork of PyPardot/PyPardot4. The main driver for the
